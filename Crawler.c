@@ -253,7 +253,7 @@ void put_links_in_list(char **result,int l,int depth)
 char* get_next_url(int depth)
 {
   struct Link *temp=head;
-  while(temp!=NULL)
+  while(temp)
   {
     if(temp->Link_flag==0&&temp->Link_depth==depth)
     {
@@ -266,7 +266,7 @@ char* get_next_url(int depth)
 }
 int seedcheck(char ch[])
 {
-  char *check=(char*)malloc(sizeof(char)*1000);
+  char *check=(char*)calloc(1000,1);
   strcat(check,"wget --spider ");
   strcat(check,ch);
   strcat(check," >/dev/null 2>&1");
@@ -275,9 +275,10 @@ int seedcheck(char ch[])
   else
   return 0;
 }
-void depth(char ch[])
+void depth(int d)
 {
-  int d=atoi(ch);
+//  int d=atoi(ch);
+/*
   int flag=0;
   for(int i=0;ch[i]!='\0';i++)
     {
@@ -291,13 +292,15 @@ void depth(char ch[])
     }
   if(flag==0)
   {
+    */
     if(d>=1&&d<=5)
     printf("depth is correct\n");
     else
     printf("depth is not correct\n");
-  }
+/*  }
   else
   printf("incorrect numeric value\n");
+  */
 }
 void testDir(char *dir)
 {
@@ -330,23 +333,22 @@ void testDir(char *dir)
 void getpage(char *url,char ch[])
 {
   char urlbuffer[300]="wget -O ";
-  strcat(urlbuffer,"/home/nitin/Desktop/");
+  strcat(urlbuffer,"/home/nitin/Desktop/Engine/");
   strcat(urlbuffer,"temp.txt ");
   strcat(urlbuffer,url);
-  strcat(urlbuffer," >/dev/null 2>&1");
   system(urlbuffer);
   printf("**************PAGE GOT****************\n");
 }
 void chngDir(char *dir)
 {
   static int index=1;
-  char fName[100],ch;
-  char temp[100];
+  char fName[100]={0},ch;
+  char temp[100]={0};
   sprintf(fName,"%d",index);     //onverts integer to string
   strcat(fName,".txt");
   strcat(temp,dir);
   strcat(temp,fName);
-  FILE *old = fopen("/home/nitin/Desktop/temp.txt","r");
+  FILE *old = fopen("/home/nitin/Desktop/Engine/temp.txt","r");
   FILE *new = fopen(temp, "w");
   ch = getc(old);
   while(ch != EOF)
@@ -521,11 +523,11 @@ int GetNextURL(char* html, char* urlofthispage, char* result, int pos)
       //! We find a URL. HTML is a terrible standard. So there are many ways to present a URL.
       if (p1[0] == '.') {
         //! Some URLs are like <a href="../../../a.txt"> I cannot handle this.
-	// again...probably good to recursively keep going..
-	// NEW
+    // again...probably good to recursively keep going..
+    // NEW
 
         return GetNextURL(html,urlofthispage,result,pos+1);
-	// /NEW
+    // /NEW
       }
       if (p1[0] == '/') {
         //! this means the URL is the absolute path
@@ -663,6 +665,7 @@ int NormalizeURL(char* URL)
   }
   int i, j;
   len = strlen(URL);
+  //home/pardeep/nitin/
   //! Safe check.
   if (len < 2)
     return 0;
@@ -698,13 +701,13 @@ char* convertDataInStr()
 {
   //printf("In function convert\n");
   struct stat st; //variable which will count length of file.
-  stat("/home/nitin/Desktop/temp.txt",&st); // temp.txt is the file where wget fetch the html
+  stat("/home/nitin/Desktop/Engine/temp.txt",&st); // temp.txt is the file where wget fetch the html
   int file_size=st.st_size;
   //printf("In function convert after file size\n");
   char *temp_str = (char*) malloc(sizeof(char)*file_size+1);
   int i=0;
   char ch;
-  FILE *old = fopen("/home/nitin/Desktop/temp.txt","r");
+  FILE *old = fopen("/home/nitin/Desktop/Engine/temp.txt","r");
   //printf("In function convert after opening\n");
   ch = getc(old);
   while(ch != EOF)
@@ -720,9 +723,9 @@ char* convertDataInStr()
 
   return temp_str;
 }
-void run(char *url, char ch[], char *dir)
+void run(char *url, int depthh, char *dir)
 {
-  int depthh=atoi(ch);
+//  int depthh=atoi(ch);
   int check;
   char seed_url[100];
   strcpy(seed_url,url);
@@ -735,12 +738,13 @@ void run(char *url, char ch[], char *dir)
     getpage(seed_url,dir);
     chngDir(dir);
     char *fcontent = convertDataInStr();
+    printf("\nafter convertDataInStr\n");
     int pos=0;
   //  char **links = (char**) malloc(sizeof(char)*100);
     char *links[100];
-    for(int i = 0;i<100;i++)
+    for(int i = 0;i<100&&pos<160908;i++)
     {
-      links[i] = (char*) malloc(sizeof(char)*500);
+      links[i] = (char*) calloc(500,1);
       pos = GetNextURL(fcontent, url, links[i], pos);
     }
     char *links_final[100];
@@ -782,13 +786,16 @@ void run(char *url, char ch[], char *dir)
 }
 int main(int argc,char *argv[])
 {
-    run(argv[1],argv[2],argv[3]);
+    run(argv[1],atoi(argv[2]),argv[3]);
+    printf("\nIN main back\n");
     int depth=1;
-    char *url = argv[1];
+    char *url=NULL;
     while(depth<=5)
     {
-      while(url=get_next_url(depth)!=NULL)
+      printf("\nin outer looop\n");
+      while((url=get_next_url(depth))!=NULL)
       {
+        printf("\nin inner looop\n");
         run(url,depth,argv[3]);
       }
       depth++;
